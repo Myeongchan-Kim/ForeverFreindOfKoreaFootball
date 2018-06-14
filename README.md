@@ -9,6 +9,7 @@
 스웨덴 대한민국 0.46 0.30 0.24
 ```
 
+코드를 돌립니다.
 ```shell
 python run probability.csv
 ```
