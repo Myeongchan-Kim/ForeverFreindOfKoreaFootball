@@ -12,7 +12,16 @@ class WorldCupParticipants(Participant):
 
     def __init__(self, name):
         super().__init__(name)
+        self.win = None
+        self.lose = None
+        self.tie = None
 
+        self.gain_goal = None
+        self.lost_goal = None
+        self.win_others = None
+        self.reset()
+
+    def reset(self):
         self.win = 0
         self.lose = 0
         self.tie = 0
@@ -28,6 +37,9 @@ class WorldCupParticipants(Participant):
     @property
     def goal_diff(self):
         return self.gain_goal - self.lost_goal
+
+    def stats(self):
+        return f"{self.name}, win:{self.win}, lose:{self.lose}, tie:{self.tie}, goaldiff:{self.goal_diff} {self.gain_goal}-{self.lost_goal}"
 
     def __gt__(self, other):
         return [self.win_score, self.goal_diff, self.gain_goal, True if other in self.win_others else False]
@@ -62,3 +74,9 @@ if __name__ == "__main__":
     kt_team.win = 1
     assert kt_team in mc_team.win_others
     assert mc_team > kt_team
+
+    kt_team.reset()
+    assert kt_team.win == 0
+    assert mc_team > kt_team
+
+    assert mc_team.stats() == "MC, win:1, lose:1, tie:0, goaldiff-1 2-1"
