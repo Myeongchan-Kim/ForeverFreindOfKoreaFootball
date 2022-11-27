@@ -10,14 +10,17 @@ class Leaderboard:
         self.key_func = key_func_for_sorting
         self.participants = []
 
-    def append_participants(self, p):
+    def add_participants(self, participants):
+        self.participants += participants
+
+    def append_participant(self, p):
         self.participants.append(p)
 
     def get_sorted_list(self):
         return sorted(self.participants, key=self.key_func)
 
     def get_passed_participants(self):
-        return self.get_sorted_list()[:self.n_cutoff]
+        return self.get_sorted_list()[-self.n_cutoff:]
 
 
 class TypeCheckingLeaderboard(Leaderboard):
@@ -32,14 +35,17 @@ class TypeCheckingLeaderboard(Leaderboard):
 if __name__ == "__main__":
 
     ld = Leaderboard("숫자 리더보드", 2)
-    ld.append_participants(1)
-    ld.append_participants(2)
-    ld.append_participants(9)
-    ld.append_participants(10)
-    assert ld.get_passed_participants() == [1, 2]
+    ld.append_participant(1)
+    ld.append_participant(2)
+    ld.append_participant(9)
+    ld.append_participant(10)
     print("passed: ", ld.get_passed_participants())
+    assert ld.get_passed_participants() == [9, 10]
 
     ld.key_func = lambda x: -x
-    assert ld.get_passed_participants() == [10, 9]
     print("passed: ", ld.get_passed_participants())
+    assert ld.get_passed_participants() == [2, 1]
 
+    ld.add_participants([-1, -2])
+    print("passed: ", ld.get_passed_participants())
+    assert ld.get_passed_participants() == [-1, -2]

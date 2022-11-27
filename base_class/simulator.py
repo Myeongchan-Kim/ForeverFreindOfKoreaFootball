@@ -4,7 +4,7 @@ from numpy.random import choice
 from configs import DEFAULT_PROBA
 from participant import WorldCupParticipants
 from match import WorldCupMatchManager
-
+from leaderboard import Leaderboard
 
 class MatchPredictor:
     @classmethod
@@ -62,7 +62,7 @@ class WorldCupSimulator:
             p1_score, p2_score = result
             WorldCupMatchManager.apply_result(p1=p1, p2=p2, p1_score=p1_score, p2_score=p2_score)
 
-        return self.participants
+        return self.participants, history
 
 
 if __name__ == "__main__":
@@ -75,9 +75,19 @@ if __name__ == "__main__":
     teams = ['Korea', 'Portugal', 'Uruguay', 'Ghana',]
     simulator = WorldCupSimulator(teams)
 
-    team_results = simulator.run_single()
-    print(team_results)
+    team_results, history = simulator.run_single()
+    for name, p in team_results.items():
+        print(p.stats())
+
     assert len(team_results) == len(teams)
     assert type(team_results['Korea']) == WorldCupParticipants
     assert sum([x.win for x in team_results.values()]) == sum([x.lose for x in team_results.values()])
     assert sum([x.tie for x in team_results.values()]) % 2 == 0
+
+    print(history)
+    assert len(history) == 6
+
+    leaderboard = Leaderboard('Group H', 2)
+    leaderboard.add_participants(team_results)
+    passed = leaderboard.get_passed_participants()
+    print(passed)
