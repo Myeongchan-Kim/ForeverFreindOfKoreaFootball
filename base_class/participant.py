@@ -44,6 +44,9 @@ class WorldCupParticipants(Participant):
     def __gt__(self, other):
         return [self.win_score, self.goal_diff, self.gain_goal, True if other in self.win_others else False]
 
+    def __repr__(self):
+        return " ".join(self.stats().split(" ")[:2])
+
 
 if __name__ == "__main__":
     mc_team = WorldCupParticipants("MC")
