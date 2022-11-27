@@ -33,10 +33,10 @@ class WorldCupSimulator:
     """ 시뮬레이터는 참가팀의 풀 리그를 가정하고, 골 확률표를 이용해서 최종 순위테이블을 리턴합니다."""
 
     def __init__(self, participants, default_proba=DEFAULT_PROBA):
-        self.participants = {x.name: x for x in participants}
+        self.participants = {x: WorldCupParticipants(x) for x in participants}
         matches = dict()
-        for i, p1 in enumerate(participants):
-            for j, p2 in enumerate(participants):
+        for i, p1 in enumerate(self.participants):
+            for j, p2 in enumerate(self.participants):
                 if j >= i:
                     break
 
@@ -48,7 +48,7 @@ class WorldCupSimulator:
 
     def run_single(self):
 
-        for p in self.participants:
+        for p in self.participants.values():
             p.reset()
 
         history = []
@@ -72,17 +72,12 @@ if __name__ == "__main__":
     for i in range(10):
         print(i, MatchPredictor.predict_one_result_by_dict_dist(DEFAULT_PROBA, DEFAULT_PROBA))
 
-    teams = [
-        WorldCupParticipants('Korea'),
-        WorldCupParticipants('Uruguay'),
-        WorldCupParticipants('Ghana'),
-        WorldCupParticipants('Portugal')
-    ]
+    teams = ['Korea', 'Portugal', 'Uruguay', 'Ghana',]
     simulator = WorldCupSimulator(teams)
 
     team_results = simulator.run_single()
     print(team_results)
     assert len(team_results) == len(teams)
-    assert type(team_results[0]) == WorldCupParticipants
-    assert sum([x.win for x in team_results]) == sum([x.lose for x in team_results])
-    assert sum([x.tie for x in team_results]) % 2 == 0
+    assert type(team_results['Korea']) == WorldCupParticipants
+    assert sum([x.win for x in team_results.values()]) == sum([x.lose for x in team_results.values()])
+    assert sum([x.tie for x in team_results.values()]) % 2 == 0

@@ -63,10 +63,10 @@ if __name__ == "__main__":
 
     mc_team.win = 1
     kt_team.win = 1
-    mc_team.lost_goal = 2
-    kt_team.lost_goal = 1
-    assert mc_team.goal_diff == 0
-    assert kt_team.goal_diff == 0
+    mc_team.lost_goal = 3
+    kt_team.lost_goal = 2
+    assert mc_team.goal_diff == -1
+    assert kt_team.goal_diff == -1
     assert mc_team > kt_team
 
     mc_team.win = 1
@@ -79,4 +79,4 @@ if __name__ == "__main__":
     assert kt_team.win == 0
     assert mc_team > kt_team
 
-    assert mc_team.stats() == "MC, win:1, lose:1, tie:0, goaldiff-1 2-1"
+    assert mc_team.stats() == "MC, win:1, lose:0, tie:0, goaldiff:-1 2-3", mc_team.stats() + " looks wrong"
