@@ -17,19 +17,24 @@ class Leaderboard:
         self.participants.append(p)
 
     def get_sorted_list(self):
-        return sorted(self.participants, key=self.key_func)
+        return sorted(self.participants, key=self.key_func, reverse=True)
 
-    def get_passed_participants(self):
-        return self.get_sorted_list()[-self.n_cutoff:]
+    def get_top_participants(self):
+        return self.get_sorted_list()[:self.n_cutoff]
 
 
-class TypeCheckingLeaderboard(Leaderboard):
-    def __init__(self, name, n_cutoff, key_func_for_sorting, participants_class):
-        super().__init__(name, n_cutoff, key_func_for_sorting)
-        self.participants_class = participants_class
+class WordCupGroupStageLeaderBoard(Leaderboard):
 
-    def _is_valid_participants(self, p):
-        return type(p) == self.participants_class
+    def get_sorted_list(self):
+        score_func = lambda x : [x.win_score, x.goal_diff, x.gain_goal]
+        participants = sorted(self.participants, key=score_func, reverse=True)
+        if score_func(participants[2]) == score_func(participants[1]):
+            participants = self.__apply_tie_breaker(participants)
+        return participants
+
+    @classmethod
+    def __apply_tie_breaker(cls, participants):
+        return participants
 
 
 if __name__ == "__main__":
@@ -39,13 +44,13 @@ if __name__ == "__main__":
     ld.append_participant(2)
     ld.append_participant(9)
     ld.append_participant(10)
-    print("passed: ", ld.get_passed_participants())
-    assert ld.get_passed_participants() == [9, 10]
+    print("passed: ", ld.get_top_participants())
+    assert ld.get_top_participants() == [10, 9]
 
     ld.key_func = lambda x: -x
-    print("passed: ", ld.get_passed_participants())
-    assert ld.get_passed_participants() == [2, 1]
+    print("passed: ", ld.get_top_participants())
+    assert ld.get_top_participants() == [1, 2]
 
     ld.add_participants([-1, -2])
-    print("passed: ", ld.get_passed_participants())
-    assert ld.get_passed_participants() == [-1, -2]
+    print("passed: ", ld.get_top_participants())
+    assert ld.get_top_participants() == [-2, -1]

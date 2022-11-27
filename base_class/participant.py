@@ -39,7 +39,7 @@ class WorldCupParticipants(Participant):
         return self.gain_goal - self.lost_goal
 
     def stats(self):
-        return f"{self.name}, win:{self.win}, lose:{self.lose}, tie:{self.tie}, goaldiff:{self.goal_diff} {self.gain_goal}-{self.lost_goal}"
+        return f"{self.name} {self.win}-{self.tie}-{self.lose} goaldiff:{self.goal_diff} {self.gain_goal}-{self.lost_goal}"
 
     def __gt__(self, other):
         return [self.win_score, self.goal_diff, self.gain_goal, True if other in self.win_others else False]
@@ -60,6 +60,9 @@ if __name__ == "__main__":
     assert kt_team.goal_diff == 1
     assert mc_team > kt_team
 
+    mc_team.win = 0
+    kt_team.win = 1
+    assert mc_team < kt_team
 
     mc_team.win = 1
     kt_team.win = 1
@@ -79,4 +82,4 @@ if __name__ == "__main__":
     assert kt_team.win == 0
     assert mc_team > kt_team
 
-    assert mc_team.stats() == "MC, win:1, lose:0, tie:0, goaldiff:-1 2-3", mc_team.stats() + " looks wrong"
+    assert mc_team.stats() == "MC 1-0-0 goaldiff:-1 2-3", mc_team.stats() + " looks wrong"

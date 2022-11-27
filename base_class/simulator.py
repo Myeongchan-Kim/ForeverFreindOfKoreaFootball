@@ -1,10 +1,12 @@
+from collections import Counter
+
 import numpy as np
 from numpy.random import choice
 
 from configs import DEFAULT_PROBA
 from participant import WorldCupParticipants
 from match import WorldCupMatchManager
-from leaderboard import Leaderboard
+from leaderboard import WordCupGroupStageLeaderBoard
 
 class MatchPredictor:
     @classmethod
@@ -46,7 +48,7 @@ class WorldCupSimulator:
     def update_prob(self, p1, p2, proba1, proba2):
         self.matches[f"{p1}__{p2}"] = MatchProbability(proba1, proba2)
 
-    def run_single(self):
+    def simulate_single(self):
 
         for p in self.participants.values():
             p.reset()
@@ -64,6 +66,24 @@ class WorldCupSimulator:
 
         return self.participants, history
 
+    def simulate(self, group_name, n=1000):
+        win_counter = Counter()
+
+        for i in range(n):
+            team_results, history = self.simulate_single()
+            for key, p in team_results.items():
+                print(p.stats())
+            print("======================")
+            leaderboard = WordCupGroupStageLeaderBoard(group_name, 2)
+            winners = leaderboard.get_passed_participants()
+
+            print("After sort:", winners)
+            winner_names = [x.name for x in winners[:2]]
+            print(winner_names)
+            print("----------------------")
+            win_counter.update(winner_names)
+
+        return win_counter
 
 if __name__ == "__main__":
     sample_answer = choice([0, 1, 2, 3], 1, p=[0.4, 0.6, 0.0, 0.0])
@@ -75,7 +95,7 @@ if __name__ == "__main__":
     teams = ['Korea', 'Portugal', 'Uruguay', 'Ghana',]
     simulator = WorldCupSimulator(teams)
 
-    team_results, history = simulator.run_single()
+    team_results, history = simulator.simulate_single()
     for name, p in team_results.items():
         print(p.stats())
 
@@ -91,3 +111,6 @@ if __name__ == "__main__":
     leaderboard.add_participants(team_results)
     passed = leaderboard.get_passed_participants()
     print(passed)
+
+    mt_result = simulator.simulate("Goup H", 100)
+    print(mt_result)
