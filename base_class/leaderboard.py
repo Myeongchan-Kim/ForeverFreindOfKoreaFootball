@@ -35,8 +35,8 @@ class WordCupGroupStageLeaderBoard(Leaderboard):
             participants = self.__apply_tie_breaker(participants)
         return participants
 
-    def stat(self):
-        return {x: str(self.participants[x]) for x in self.participants}
+    def stats(self):
+        return {x.name: x.stats() for x in self.participants}
 
     @classmethod
     def __apply_tie_breaker(cls, participants):

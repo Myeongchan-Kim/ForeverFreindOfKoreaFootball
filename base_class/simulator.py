@@ -51,7 +51,8 @@ class WorldCupSimulator:
 
     def update_prob(self, p1, p2, proba1, proba2):
 
-        assert self.matches.get(f"{p1}__{p2}", False) or self.matches.get(f"{p2}__{p1}", False), "No match information found"
+        assert self.matches.get(f"{p1}__{p2}", False) or self.matches.get(f"{p2}__{p1}",
+                                                                          False), "No match information found"
 
         if self.matches.get(f"{p1}__{p2}", False):
             self.matches[f"{p1}__{p2}"] = MatchProbability(proba1, proba2)
@@ -80,33 +81,46 @@ class WorldCupSimulator:
         result = SimulationResult()
         for i in range(n):
             team_results, history = self.simulate_single()
-            result.histories.append(history)
-            # print("======================")
-            # print(self.matches)
-            # for key, p in team_results.items():
-            #     print(p.stats())
+
+            # 마지막 리더보드 추가
             leaderboard = WordCupGroupStageLeaderBoard(group_name, 2)
             leaderboard.add_participants(team_results.values())
-            winners = leaderboard.get_passed_participants()
 
-            # print("After sort:", winners)
+            # 진출팀
+            winners = leaderboard.get_passed_participants()
             winner_names = [x.name for x in winners[:2]]
-            # print(winner_names)
-            # print("----------------------")
-            result.win_counter.update(winner_names)
+
+            single_result = SimulationSingleResult(leaderboard.stats(), history, winner_names)
+            result.append(single_result)
 
         return result
 
 
 class SimulationResult:
     """시뮬레이션 결과를 담는 구조체입니다."""
+
     def __init__(self):
         self.win_counter = Counter()
-        self.leaderboards = []
-        self.histories = []
+        self.simulation_detail = []
+
+    def append(self, single_result):
+        self.simulation_detail.append(single_result)
+        self.win_counter.update(single_result.winners)
 
     def __repr__(self):
         return str(self.win_counter)
+
+
+class SimulationSingleResult:
+    """시뮬레이션 한번 결과를 담는 구조체입니다."""
+
+    def __init__(self, leaderboard_stats, match_history, winners):
+        self.leaderboard = leaderboard_stats
+        self.match_history = match_history
+        self.winners = winners
+
+    def __repr__(self):
+        return str(self.leaderboard)
 
 
 if __name__ == "__main__":
@@ -146,7 +160,7 @@ if __name__ == "__main__":
 
     simulator.update_prob("Korea", "Ghana", {2: 1}, {3: 1})
     simulator.update_prob("Uruguay", "Portugal", {0: 1}, {2: 1})
-    mt_result = simulator.simulate("Goup H", 10000)
+    mt_result = simulator.simulate("Goup H", 1000)
     print("After Round2 :", mt_result)
 
     simulator.update_prob("Korea", "Portugal", {2: 1}, {1: 1})
