@@ -8,6 +8,7 @@ from participant import WorldCupParticipants
 from match import WorldCupMatchManager
 from leaderboard import WordCupGroupStageLeaderBoard
 
+
 class MatchPredictor:
     @classmethod
     def set_random_state(cls, seed=1212):
@@ -30,6 +31,9 @@ class MatchProbability:
         self.p1_score_dist = p1_score_prob_dist
         self.p2_score_dist = p2_score_prob_dist
 
+    def __repr__(self):
+        return f"p1:{self.p1_score_dist}, p2:{self.p2_score_dist}"
+
 
 class WorldCupSimulator:
     """ 시뮬레이터는 참가팀의 풀 리그를 가정하고, 골 확률표를 이용해서 최종 순위테이블을 리턴합니다."""
@@ -46,7 +50,13 @@ class WorldCupSimulator:
         self.matches = matches
 
     def update_prob(self, p1, p2, proba1, proba2):
-        self.matches[f"{p1}__{p2}"] = MatchProbability(proba1, proba2)
+
+        assert self.matches.get(f"{p1}__{p2}", False) or self.matches.get(f"{p2}__{p1}", False), "No match information found"
+
+        if self.matches.get(f"{p1}__{p2}", False):
+            self.matches[f"{p1}__{p2}"] = MatchProbability(proba1, proba2)
+        else:
+            self.matches[f"{p2}__{p1}"] = MatchProbability(proba2, proba1)
 
     def simulate_single(self):
 
@@ -67,23 +77,37 @@ class WorldCupSimulator:
         return self.participants, history
 
     def simulate(self, group_name, n=1000):
-        win_counter = Counter()
-
+        result = SimulationResult()
         for i in range(n):
             team_results, history = self.simulate_single()
-            for key, p in team_results.items():
-                print(p.stats())
-            print("======================")
+            result.histories.append(history)
+            # print("======================")
+            # print(self.matches)
+            # for key, p in team_results.items():
+            #     print(p.stats())
             leaderboard = WordCupGroupStageLeaderBoard(group_name, 2)
+            leaderboard.add_participants(team_results.values())
             winners = leaderboard.get_passed_participants()
 
-            print("After sort:", winners)
+            # print("After sort:", winners)
             winner_names = [x.name for x in winners[:2]]
-            print(winner_names)
-            print("----------------------")
-            win_counter.update(winner_names)
+            # print(winner_names)
+            # print("----------------------")
+            result.win_counter.update(winner_names)
 
-        return win_counter
+        return result
+
+
+class SimulationResult:
+    """시뮬레이션 결과를 담는 구조체입니다."""
+    def __init__(self):
+        self.win_counter = Counter()
+        self.leaderboards = []
+        self.histories = []
+
+    def __repr__(self):
+        return str(self.win_counter)
+
 
 if __name__ == "__main__":
     sample_answer = choice([0, 1, 2, 3], 1, p=[0.4, 0.6, 0.0, 0.0])
@@ -92,7 +116,7 @@ if __name__ == "__main__":
     for i in range(10):
         print(i, MatchPredictor.predict_one_result_by_dict_dist(DEFAULT_PROBA, DEFAULT_PROBA))
 
-    teams = ['Korea', 'Portugal', 'Uruguay', 'Ghana',]
+    teams = ['Korea', 'Portugal', 'Uruguay', 'Ghana', ]
     simulator = WorldCupSimulator(teams)
 
     team_results, history = simulator.simulate_single()
@@ -107,10 +131,25 @@ if __name__ == "__main__":
     print(history)
     assert len(history) == 6
 
-    leaderboard = Leaderboard('Group H', 2)
-    leaderboard.add_participants(team_results)
+    leaderboard = WordCupGroupStageLeaderBoard('Group H', 2)
+    leaderboard.add_participants(team_results.values())
     passed = leaderboard.get_passed_participants()
     print(passed)
 
     mt_result = simulator.simulate("Goup H", 100)
-    print(mt_result)
+    print("Round0 :", mt_result)
+
+    simulator.update_prob("Korea", "Uruguay", {0: 1}, {0: 1})
+    simulator.update_prob("Ghana", "Portugal", {2: 1}, {3: 1})
+    mt_result = simulator.simulate("Goup H", 100)
+    print("After Round1 :", mt_result)
+
+    simulator.update_prob("Korea", "Ghana", {2: 1}, {3: 1})
+    simulator.update_prob("Uruguay", "Portugal", {0: 1}, {2: 1})
+    mt_result = simulator.simulate("Goup H", 10000)
+    print("After Round2 :", mt_result)
+
+    simulator.update_prob("Korea", "Portugal", {2: 1}, {1: 1})
+    simulator.update_prob("Uruguay", "Ghana", {2: 1}, {0: 1})
+    mt_result = simulator.simulate("Goup H", 100)
+    print("After Round3 :", mt_result)
